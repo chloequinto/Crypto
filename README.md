@@ -1,5 +1,5 @@
 # Crypto
-HST 345 Final Project  
+HST 325 Final Project  
 Used GDAX API to create a visualization of instant transactiosn for cryptocurrencies and current prices 
 
 
