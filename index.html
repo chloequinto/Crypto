@@ -1,0 +1,480 @@
+<!-- HST 245 Visualizing Society Chloe Quinto Final Project-->
+<!-- Step 1: Size of Trades for Ethereum and Bitcoin -->
+<!-- Step 2: Create a visualization -->
+
+
+<!DOCTYPE html>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+
+<html>
+
+<head>
+  <div id= "wrapper">
+
+      <h1>HST Visualizing Society Final Project - Chloe Quinto </h1>
+      <h4>Visualization that shows the current price of three cryptocurrencies
+          and instant transactions of each. Data is taken from GDAX api.
+          Hover over circles for the values.
+      </h4>
+    </div>
+<div id="prices">
+  <div id="prices-etc" >
+  <h1> Ethereum Current Price </h1>
+  <div id="etc"></div>
+</div>
+
+<div id="prices-btc" >
+  <h1> Bitcoin Current Price </h1>
+  <div id="btc"> </div>
+</div>
+
+<div id="prices-ltc" >
+  <h1> Litecoin Current Price </h1>
+  <div id="ltc"> </div>
+</div>
+
+</div>
+
+</head>
+
+<style>
+#wrapper {
+  font-size: 1em;
+  font-family: arial;
+  padding-bottom: 10px;
+  text-align: center;
+}
+
+#prices-etc {
+  padding-bottom: 120px;
+}
+
+#prices-btc {
+  padding-bottom: 130px;
+}
+
+#prices-ltc {
+  padding-bottom: 70px;
+}
+#etc {
+  font-size:6em;
+  color: gray;
+}
+#btc {
+  font-size:6em;
+  color: green;
+}
+#ltc {
+  font-size:6em;
+  color: blue;
+  padding-bottom: 20px;
+}
+#ethtrades {
+  font-size:1em;
+  color: gray;
+}
+#btctrades {
+  font-size:1em;
+  color: green;
+}
+#ltctrades {
+  font-size:1em;
+  color: blue;
+}
+#prices{
+font-size: 1em;
+font-family: monospace;
+text-align: left;
+float: left;
+}
+</style>
+
+
+<script>
+
+
+
+//Gets current Price of Ethereum
+var currentPrice = new XMLHttpRequest();
+currentPrice.open('GET', 'https://api.gdax.com/products/ETH-USD/book', true);
+currentPrice.onreadystatechange = function(){
+  if(currentPrice.readyState == 4){
+    var ticker = JSON.parse(currentPrice.responseText);
+    var price = ticker.bids[0][0];
+    document.getElementById('etc').innerHTML = "$" + price;
+  };
+};
+currentPrice.send();
+
+//Gets current price of Bitcoin
+var currentPriceTwo = new XMLHttpRequest();
+currentPriceTwo.open('GET', 'https://api.gdax.com/products/BTC-USD/book', true);
+currentPriceTwo.onreadystatechange = function(){
+  if(currentPriceTwo.readyState == 4){
+    var ticker = JSON.parse(currentPriceTwo.responseText);
+    var price = ticker.bids[0][0];
+    document.getElementById('btc').innerHTML = "$" + price;
+  };
+};
+currentPriceTwo.send();
+
+//create a function that gets the current time
+
+//Gets current price of litecoin
+var currentPriceThree = new XMLHttpRequest();
+currentPriceThree.open('GET', 'https://api.gdax.com/products/LTC-USD/book', true);
+currentPriceThree.onreadystatechange = function(){
+  if(currentPriceThree.readyState == 4){
+    var ticker = JSON.parse(currentPriceThree.responseText);
+    var price = ticker.bids[0][0];
+    document.getElementById('ltc').innerHTML = "$" + price;
+  };
+};
+currentPriceThree.send();
+
+
+
+
+
+
+//Ethereum
+
+var margin = {top: 20, right: 20, bottom: 70, left: 40},
+    width = 900 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+var x = d3.time.scale()
+    .rangeRound([0, width]);
+
+var y = d3.scale.linear()
+    .domain([0,10])
+    .range([height, 0]);
+
+var color = d3.scale.category10();
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .ticks(d3.time.second, 100)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var chartone= d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+d3.json("https://api.gdax.com/products/ETH-USD/trades", function(error, data) {
+  if (error) throw error;
+  for (let i of data) {
+    i.size=+i.size;
+    i.time = new Date(i.time);
+  }
+
+  x.domain(d3.extent(data, function(d) { return d.time; })).nice();
+  y.domain(d3.extent(data, function(d) { return d.size; })).nice();
+
+
+
+//X-axis
+  chartone.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+      .append("text")
+      .attr("class", "label")
+      .attr("x", width)
+      .attr("y", -6)
+      .style("text-anchor", "end");
+
+// Y-axis
+  chartone.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Size of Ethereum Transactions")
+
+  chartone.selectAll(".dot")
+      .data(data)
+      .enter().append("circle")
+      .attr("class", "dot")
+      .attr("r", function(d) {return (d.size); })
+      .attr("fill", "gray")
+      .attr("cx", function(d) { return x(d.time); })
+      .attr("cy", function(d) { return y(d.size); })
+      .on("mouseover", handleMouseOver)
+      .on("mouseout", handleMouseOut);
+
+      function handleMouseOver(d, i) {
+         var coords = d3.mouse(this);
+            d3.select(this).attr({
+              fill: "orange",
+            //  r: d.size * 2
+            });
+
+            // Specify where to put label of text
+            chartone.append("text").attr({
+               id: "test",  // Create an id for text so we can select it later for removing on mouseout
+                x: function() { return x(d.time) + 3; },
+                y: function() { return y(d.size) - 1; }
+            })
+            .text(function() {
+              return [d.size];  // Value of the text
+            });
+          }
+
+      function handleMouseOut(d, i) {
+            // Use D3 to select element, change color back to normal
+            d3.select(this).attr({
+              fill: "gray",
+//r: d.size
+            });
+
+            // Select text by id and then remove
+            d3.select("#test").remove(); // Remove text location
+          }
+
+
+
+
+
+
+});
+
+//Bitcoin
+
+var margin = {top: 20, right: 20, bottom: 70, left: 40},
+    width = 900 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+
+var x = d3.time.scale()
+    .rangeRound([0, width]);
+
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var color = d3.scale.category10();
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .ticks(d3.time.second, 5)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var charttwo = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+d3.json("https://api.gdax.com/products/BTC-USD/trades", function(error, data) {
+  if (error) throw error;
+  for (let i of data) {
+    i.size=+i.size;
+    i.time = new Date(i.time);
+  }
+
+  x.domain(d3.extent(data, function(d) { return d.time; })).nice();
+  y.domain(d3.extent(data, function(d) { return d.size; })).nice();
+
+//X-axis
+  charttwo.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("x", width)
+      .attr("y", -6)
+      .style("text-anchor", "end");
+
+// Y-axis
+  charttwo.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Size of Bitcoin Transactions")
+
+  charttwo.selectAll(".dot")
+      .data(data)
+    .enter().append("circle")
+      .attr("class", "dot")
+      .attr("r", function(d) {return (d.size * 20); })
+      .attr("fill", "green")
+      .attr("cx", function(d) { return x(d.time); })
+      .attr("cy", function(d) { return y(d.size); })
+      .on("mouseover", handleMouseOver)
+      .on("mouseout", handleMouseOut);
+
+      function handleMouseOver(d, i) {  // Add interactivity
+
+            // Use D3 to select element, change color and size
+            d3.select(this).attr({
+              fill: "orange",
+          //    r: d.size * 5
+            });
+
+            // Specify where to put label of text
+            charttwo.append("text").attr({
+               id: "test_two",  // Create an id for text so we can select it later for removing on mouseout
+                x: function() { return x(d.time) + 10; },
+                y: function() { return y(d.size) + 2; }
+            })
+            .text(function() {
+              return [d.size];  // Value of the text
+            });
+          }
+
+      function handleMouseOut(d, i) {
+            // Use D3 to select element, change color back to normal
+            d3.select(this).attr({
+              fill: "green",
+          //    r: d.size / 5
+            });
+
+            // Select text by id and then remove
+            d3.select("#test_two").remove(); // Remove text location
+          }
+
+
+
+
+});
+
+
+
+//Litecoin
+
+var margin = {top: 20, right: 20, bottom: 70, left: 40},
+    width = 900 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+
+var x = d3.time.scale()
+    .rangeRound([0, width]);
+
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var color = d3.scale.category10();
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .ticks(d3.time.second, 5)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var chartthree = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+d3.json("https://api.gdax.com/products/LTC-USD/trades", function(error, data) {
+  if (error) throw error;
+  for (let i of data) {
+    i.size=+i.size;
+    i.time = new Date(i.time);
+  }
+
+  x.domain(d3.extent(data, function(d) { return d.time; })).nice();
+  y.domain(d3.extent(data, function(d) { return d.size; })).nice();
+
+//X-axis
+  chartthree.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("x", width)
+      .attr("y", -6)
+      .style("text-anchor", "end");
+
+// Y-axis
+  chartthree.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Size of Litecoin Transactions")
+
+  chartthree.selectAll(".dot")
+      .data(data)
+    .enter().append("circle")
+      .attr("class", "dot")
+      .attr("r", function(d) {return (d.size /2); })
+      .attr("fill", "blue")
+      .attr("cx", function(d) { return x(d.time); })
+      .attr("cy", function(d) { return y(d.size); })
+      .on("mouseover", handleMouseOver)
+      .on("mouseout", handleMouseOut);
+
+      function handleMouseOver(d, i) {  // Add interactivity
+
+            // Use D3 to select element, change color and size
+            d3.select(this).attr({
+              fill: "orange",
+              //r: size * 2
+            });
+
+            // Specify where to put label of text
+            chartthree.append("text").attr({
+               id: "test_three",  // Create an id for text so we can select it later for removing on mouseout
+                x: function() { return x(d.time); },
+                y: function() { return y(d.size) - 1; }
+            })
+            .text(function() {
+              return [d.size];  // Value of the text
+            });
+          }
+
+      function handleMouseOut(d, i) {
+            // Use D3 to select element, change color back to normal
+            d3.select(this).attr({
+              fill: "blue",
+            //  r: size
+            });
+
+            // Select text by id and then remove
+            d3.select("#test_three").remove(); // Remove text location
+          }
+
+
+
+
+});
+
+
+</script>
+
+</html>
