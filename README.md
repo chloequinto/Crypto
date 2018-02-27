@@ -1,7 +1,8 @@
 # Crypto
 HST 325 Final Project  
 
-[Website Link] (http://2017.vizsociety.net/~cquinto/chloe_quinto_final/crypto_test_one.html)
+[Project Link](http://2017.vizsociety.net/~cquinto/chloe_quinto_final/crypto_test_one.html)
+<br/>
 Used GDAX API to create a visualization of instant transactions for cryptocurrencies and current prices 
 
 
